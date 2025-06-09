@@ -22,16 +22,23 @@ import { paymentSchemas } from './modules/payments/payment.schema'
 import { promotionRoutes } from './modules/promotions/promotion.routes'
 import { promotionSchemas } from './modules/promotions/promotion.schema'
 import { set } from 'zod/v4'
+import { FastifyTypedInstance } from './types'
+import { ZodTypeProvider } from 'fastify-type-provider-zod'
 
 export function buildApp() {
   const app = fastify({
     logger: true
-  })
+  }).withTypeProvider<ZodTypeProvider>() as FastifyTypedInstance
 
   
   app.register(fastifyCors, { origin: '*' })
   
-  app.register(fastifyJwt, { secret: env.JWT_SECRET })
+  app.register(fastifyJwt, { 
+    secret: env.JWT_SECRET,
+    sign: {
+      expiresIn: '1d'
+    } 
+  })
   setupAuth(app)
 
   for (const schema of [...userSchemas, ...movieSchemas, ...cinemaSchemas, ...sessionSchemas, ...ticketSchemas, ...paymentSchemas, ...promotionSchemas]) {
@@ -41,18 +48,52 @@ export function buildApp() {
   app.register(fastifySwagger, withRefResolver({
     openapi: {
       info: {
-        title: 'Cinema API',
-        description: 'API for Cinema Management System',
-        version: '1.0.0'
+        title: 'CineXplorer API',
+        description: 'API completa para sistema de gerencimento de cinemas',
+        version: '1.0.0',
+        contact: {
+          name: 'Suporte cineXplorer',
+          email: 'suporte@cinexplorer.com'
+        },
+        license: {
+          name: 'MIT',
+          url: 'https://opensource.org/licenses/MIT'
+        }
       },
       servers: [{
-        url: `http://localhost:${env.API_PORT}`
-      }]
+        url: `http://localhost:${env.API_PORT}`,
+        description: 'Ambiente de desenvolvimento local'
+      }],
+      tags: [
+        { name: 'admin', description: 'Operações administrativas (requer permissão de ADMIN)' },
+        { name: 'auth', description: 'Autenticação e registro de usuários' },
+        { name: 'movies', description: 'Operações relacionadas a filmes' },
+        { name: 'cinemas', description: 'Operações relacionadas a cinemas' },
+        { name: 'sessions', description: 'Operações relacionadas a sessões' },
+        { name: 'tickets', description: 'Operações relacionadas a ingressos' },
+        { name: 'payments', description: 'Oprações relacionadas a pagamentos' },
+        { name: 'promotions', description: 'Operações relacionadas a promoções' }
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT'
+          }
+        }
+      }
     }
   }))
 
   app.register(fastifySwaggerUi, {
-    routePrefix: '/docs'
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: true
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header
   })
 
   app.register(authRoutes, { prefix: '/api/auth' })
@@ -64,8 +105,26 @@ export function buildApp() {
   app.register(adminRoutes, { prefix: '/api/admin' })
   app.register(promotionRoutes, { prefix: '/api/promotions' })
 
-  app.get('/api/health', async () => {
-    return { status: 'ok' }
+  app.get('/api/health', {
+    schema: {
+      tags: ['system'],
+      description: 'Verifica a saúde da API',
+      response: {
+        200: {
+          description: 'API está funcionando',
+          type: 'object',
+          properties: {
+            status: { type: 'string', example: 'ok' },
+            timestamp: { type: 'string', format: 'date-time' }
+          }
+        }
+      }
+    }
+  }, async () => {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString()
+    }
   })
 
   return app

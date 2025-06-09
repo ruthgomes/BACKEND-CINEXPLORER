@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
-  name String
-  email String @unique
-  password String
-  role Role @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tickets Ticket[]
-  address Address[]
-  payments Payment[]
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  tickets   Ticket[]
+  address   Address[]
+  payments  Payment[]
 }
 
 enum Role {
@@ -26,90 +26,90 @@ enum Role {
 }
 
 model Address {
-  id  String @id @default(uuid())
-  userId String
-  user User @relation(fields: [userId], references: [id])
-  cep String
-  estado String
-  cidade String
-  bairro String
-  rua String
-  numero String
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  cep         String
+  estado      String
+  cidade      String
+  bairro      String
+  rua         String
+  numero      String
   complemento String?
-  latitude Float?
-  longitude Float?
-  createdAt DateTime @default(now())
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
 }
 
 model Movie {
-  id String @id @default(uuid())
-  title String
-  synopsis String
-  posterUrl String
-  backdropUrl String
-  trailerUrl String?
-  duration Int
-  releaseDate DateTime
+  id             String    @id @default(uuid())
+  title          String
+  synopsis       String
+  posterUrl      String
+  backdropUrl    String
+  trailerUrl     String?
+  duration       Int
+  releaseDate    DateTime
   classification String
-  genres String[]
-  rating Float?
-  isComingSoon Boolean @default(false)
-  sessions Session[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  genres         String[]
+  rating         Float?
+  isComingSoon   Boolean   @default(false)
+  sessions       Session[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model Cinema {
-  id String @id @default(uuid())
-  name String
-  address String
-  location Json
-  rooms Room[]
-  sessions Session[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  name      String
+  address   String
+  location  Json
+  rooms     Room[]
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Room {
-  id String @id @default(uuid())
-  name String
-  cinemaId String
-  cinema Cinema @relation(fields: [cinemaId], references: [id])
-  rows Int
+  id          String    @id @default(uuid())
+  name        String
+  cinemaId    String
+  cinema      Cinema    @relation(fields: [cinemaId], references: [id])
+  rows        Int
   seatsPerRow Int
-  sessions Session[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sessions    Session[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Session {
-  id String @id @default(uuid())
-  movieId String
-  movie Movie @relation(fields: [movieId], references: [id])
-  cinemaId String
-  cinema Cinema @relation(fields: [cinemaId], references: [id])
-  roomId String
-  room Room @relation(fields: [roomId], references: [id])
-  date DateTime
-  time String
-  seats Seat[]
-  tickets Ticket[]
+  id        String   @id @default(uuid())
+  movieId   String
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  cinemaId  String
+  cinema    Cinema   @relation(fields: [cinemaId], references: [id])
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id])
+  date      DateTime
+  time      String
+  seats     Seat[]
+  tickets   Ticket[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Seat {
-  id String @id @default(uuid())
-  sessionId String
-  session Session @relation(fields: [sessionId], references: [id])
-  row String
-  number Int
-  status SeatStatus @default(AVAILABLE)
+  id          String     @id @default(uuid())
+  sessionId   String
+  session     Session    @relation(fields: [sessionId], references: [id])
+  row         String
+  number      Int
+  status      SeatStatus @default(AVAILABLE)
   reservation String?
-  ticketId String?
-  ticket Ticket? @relation(fields: [ticketId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  ticketId    String?
+  ticket      Ticket?    @relation(fields: [ticketId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 enum SeatStatus {
@@ -119,20 +119,20 @@ enum SeatStatus {
 }
 
 model Ticket {
-  id String @id @default(uuid())
-  sessionId String
-  session Session @relation(fields: [sessionId], references: [id])
-  userId String
-  user User @relation(fields: [userId], references: [id])
-  seats Seat[]
-  type TicketType
-  price Float
-  qrCode String
+  id         String       @id @default(uuid())
+  sessionId  String
+  session    Session      @relation(fields: [sessionId], references: [id])
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  seats      Seat[]
+  type       TicketType
+  price      Float
+  qrCode     String
   purchaseId String
-  status TicketStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  payments Payment[]
+  status     TicketStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  payments   Payment[]
 }
 
 enum TicketType {
@@ -149,19 +149,19 @@ enum TicketStatus {
 }
 
 model Payment {
-  id String @id @default(uuid())
-  userId String
-  user User @relation(fields: [userId], references: [id])
-  amount Float
-  method PaymentMethod
-  status PaymentStatus @default(PENDING)
-  installments Int?
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  amount        Float
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  installments  Int?
   cardLLastFour String?
-  pixCode String?
-  pixQrCode String?
-  tickets Ticket[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  pixCode       String?
+  pixQrCode     String?
+  tickets       Ticket[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 enum PaymentMethod {
@@ -178,18 +178,18 @@ enum PaymentStatus {
 }
 
 model Promotion {
-  id String @id @default(uuid())
-  title String
-  description String
-  discount Float @default(0)
-  code String @unique
-  validFrom DateTime
-  validUntil DateTime
-  isActive Boolean @default(true)
-  applicableMovies String[] @default([])
+  id                String   @id @default(uuid())
+  title             String
+  description       String
+  discount          Float    @default(0)
+  code              String   @unique
+  validFrom         DateTime
+  validUntil        DateTime
+  isActive          Boolean  @default(true)
+  applicableMovies  String[] @default([])
   applicableCinemas String[] @default([])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([code])
   @@index([isActive])

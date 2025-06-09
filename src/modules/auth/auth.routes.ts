@@ -1,29 +1,37 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { loginInputSchema, loginResponseSchema, registerInputSchema } from './auth.schema';
 import { createUser, findUserByEmail, verifyPassword } from './auth.service';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 export async function authRoutes(app: FastifyInstance) {
     app.post('/login', {
     schema: {
-      body: {
-        type: 'object',
-        required: ['email', 'password'],
-        properties: {
-          email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 6 }
-        }
-      },
+      tags: ['auth'],
+      summary: 'Autentica um usuário',
+      description: 'Realiza o login do usuário e retorna um token JWT',
+      body: zodToJsonSchema(loginInputSchema),
       response: {
         200: {
+          description: 'Login realizado com sucesso',
+          ...zodToJsonSchema(loginResponseSchema)
+        },
+        401: {
+          description: 'Credenciais inválidas',
           type: 'object',
           properties: {
-            token: { type: 'string' },
-            user: { $ref: 'User#' }
+            message: { type: 'string', example: 'Credenciais inválidas' }
           }
         }
-      }
+      },
+      examples: [{
+        summary: 'Login de usuário',
+        value: {
+          email: 'user@example.com',
+          password: 'senha123'
+        }
+      }]
     }
-  }, async (request, reply) => {
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     const { email, password } = request.body as { email: string; password: string }
 
     const user = await findUserByEmail(email)
@@ -56,24 +64,31 @@ export async function authRoutes(app: FastifyInstance) {
 
     app.post('/register', {
         schema: {
-            body: {
-                type: 'object',
-                required: ['name', 'email', 'password'],
-                properties: {
-                    name: { type: 'string', minLength: 3 },
-                    email: { type: 'string', format: 'email' },
-                    password: { type: 'string', minLength: 6 }
-                }
-            },
+          tags: ['auth'],
+          summary: 'Registra um novo usuário',
+          description: 'Cria uma nova conta de usuário com dados fornecidos',
+            body: zodToJsonSchema(registerInputSchema),
             response: {
                 201: {
-                    type: 'object',
-                    properties: {
-                        token: { type: 'string' },
-                        user: { $ref: 'User#' }
-                    }
+                    description: 'Usuário registrado com sucesso',
+                    ...zodToJsonSchema(loginResponseSchema)
+                },
+                400: {
+                  description: 'Email já em uso',
+                  type: 'object',
+                  properties: {
+                    message: { type: 'string', example: 'Email already in use' }
+                  }
                 }
-            }
+            },
+            examples: [{
+              summary: 'Registro de novo usuário',
+              value: {
+                name: 'Novo Usuário',
+                email: 'novo@example.com',
+                password: 'senha123'
+              }
+            }]
         }
     }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { email } = request.body as { email: string };
@@ -104,7 +119,22 @@ export async function authRoutes(app: FastifyInstance) {
     });
 
     app.post('/logout', {
-        onRequest: [(app as any).authenticate]
+        onRequest: [(app as any).authenticate],
+        schema: {
+          tags: ['auth'],
+          summary: 'Desloga o usuário',
+          description: 'Invalida o token JWT do usuário (implementação simbólica)',
+          security: [{ bearerAuth: [] }],
+          response: {
+            200: {
+              description: 'Logout realizado com sucesso',
+              type: 'object',
+              properties: {
+                message: { type: 'string', example: 'Logged out successfully' }
+              }
+            }
+          }
+        }
     }, async (request: FastifyRequest, reply: FastifyReply) => {
         return { message: 'Logged out successfully' }
     })
@@ -112,9 +142,14 @@ export async function authRoutes(app: FastifyInstance) {
     app.get('/me', {
         onRequest: [(app as any).authenticate],
         schema: {
-            response: {
+          tags: ['auth'],
+          summary: 'Obtém informações do usuário atual',
+          description: 'Retorna os dados do usuário autenticado',
+          security: [{ bearerAuth: [] }],
+          response: {
                 200: {
-                    $ref: 'User'
+                    description: 'Dados do usuário',
+                    $ref: 'User#'
                 }
             }
         }
